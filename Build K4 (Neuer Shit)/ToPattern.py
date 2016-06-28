@@ -5,22 +5,22 @@
 #
 
 
-input = """ 0 1 0
-            0 1 0
-            0 0 0"""
+input = """ 0 0
+            0 P"""
 
 flag = "00000"
 
-target = """ - - -
-            - - -
-            - 1 -"""
+# where to set
+target = """x -
+            - -"""
 
 input = "".join(input.replace("\n",",").split())
 
-index = int("".join(target.split()).index("1"))
+index = int("".join(target.split()).index("x"))
 
-i = index // len(input.replace("\n",",").split())
-j = index % len(input.replace("\n",",").split()[0])
+
+i = index // len(target.replace(" ", "").split("\n")[0])
+j = index % len(target.replace(" ", "").split("\n")[0])
 
 priority = 0
 
