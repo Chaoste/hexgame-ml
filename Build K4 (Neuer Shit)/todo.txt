@@ -1,0 +1,15 @@
+
+##### Machine Learning #####
+
+(reinforcement learning) - Bewertungsfunktion (Wann ist ein Zug gut?)
+
+
+
+- pattern matching
+	xor
+  mcts preprocessing results
+ 
+- check wheter move was good or did a major win
+	to the entire game instance
+- get a valuation and save that in pattern
+

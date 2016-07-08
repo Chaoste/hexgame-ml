@@ -1,19 +1,21 @@
-from KI import *
 import random
 from random import shuffle
 
-class MainKI(KI):
+class MainKI:
     
     # -------------------------------------------------------------------------------------------
     # ---------------------------- General Interface --------------------------------------------
     # -------------------------------------------------------------------------------------------
     
     def __init__(self, game):
-        super().__init__(game)
+        
+        self.Game = game
         
         self.FirstMove = [-1,-1]
         
         self.Vertices = dict(self.Game.HexBoard.Vertices)
+        
+        
     
     def getMove(self):
         
@@ -22,11 +24,14 @@ class MainKI(KI):
             return self.FirstMove
         
         else:
+            
             return self.calcMove()
     
     # -------------------------------------------------------------------------------------------
     # ---------------------------- Internal Functions -------------------------------------------
     # -------------------------------------------------------------------------------------------
+    
+    
     
     def calcFirstMove(self):
         

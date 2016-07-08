@@ -1,26 +1,47 @@
 class Pattern:
     
-    def __init__(self, m, n, pattern, target, i, j, flagMask, weight = 0):
+    def __init__(self, reverse, pattern, weight = 0):
         
-        self.m = m
-        self.n = n
-        self.i = i
-        self.j = j
-        self.pattern = pattern
-        self.target = target
-        self.flagMask = flagMask
+        self.m = len(pattern.split(","))
+        self.n = len(pattern.split(",")[0])
+        
+        self.pattern = "".join(pattern.split(","))
+        
         self.weight = weight
         
-        self.margins = self.getMargins()
-    
-    #@abstractmethod
-    def check(self):
-        return 0
-    
+        if reverse:
+            
+            Q = []
+            oldPattern = self.pattern
+            for j in range(self.n):
+                
+                s = []
+                for i in range(self.m):
+                    s.append(self.pattern[i*self.n + j])
+                
+                #s.reverse()
+                Q.append("".join(s))
+            #Q.reverse()
+            
+            self.pattern = "".join(Q)
+            
+            m = self.m
+            self.m = self.n
+            self.n = m
+            
+            #self.getMargins()
+            
+            #print("GOT NEW inverted pattern", self.m, self.n, oldPattern, self.pattern)
+
+        
+        self.i = self.pattern.index("x") // self.n
+        self.j = self.pattern.index("x") % self.n
+        
+        self.getMargins()
     
     def getMargins(self):
         
-        marginLiterals = ["0", "?", "p", "e"]
+        marginLiterals = ["0", "?", "p", "e", "-"]
         
         # left, right, top, bottom
         
@@ -72,13 +93,13 @@ class Pattern:
         self.j = int(self.j)
         
         # where is the new value set??
-        if self.i > self.m - self.bottomMargin:
+        if self.i >= self.m - self.bottomMargin:
             self.bottomMargin = self.m - self.i -1
         
         if self.i - self.topMargin < 0:
             self.topMargin = self.i 
         
-        if self.j > self.n - self.rightMargin:
+        if self.j >= self.n - self.rightMargin:
             self.rightMargin = self.n - self.j -1
         
         if self.j - self.leftMargin < 0:

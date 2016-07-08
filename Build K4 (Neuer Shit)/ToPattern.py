@@ -1,28 +1,28 @@
-# 1 enemy
-# 2 self
-# 0 not marked
-# ? state not specified
-#
+# E : enemy
+# e : enemy if on playground
+# P : player
+# p : player if on playground
+# 0 : not marked
+# ? : state not specified
+# - : border
 
 
-input = """ 0 0
-            0 P"""
+input = """ P x 
+            E P """
 
-flag = "00000"
 
-# where to set
-target = """x -
-            - -"""
 
+            
 input = "".join(input.replace("\n",",").split())
 
-index = int("".join(target.split()).index("x"))
+index = int("".join(input.split()).index("x"))
+print(index)
 
 
-i = index // len(target.replace(" ", "").split("\n")[0])
-j = index % len(target.replace(" ", "").split("\n")[0])
+i = index // len(input.replace(" ", "").split("\n")[0])
+j = index % len(input.replace(" ", "").split("\n")[0])
 
 priority = 0
 
 
-print(input + ";" + "".join(target.split()) + ";" + str(i) + ";" + str(j) + ";" + flag + ";" + str(priority))
+print(input + ";" + str(priority))

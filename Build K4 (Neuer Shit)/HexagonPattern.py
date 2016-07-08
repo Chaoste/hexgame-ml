@@ -57,7 +57,18 @@ class HexagonPattern():
             self.scale=(self.HexGUI.canvas_width - 2 * self.margin*self.vergleich) / (self.q*1.7320508)
             
         self.spielbrett=[[0,1,0],[2,0,0],[0,0,0]]
-            
+    
+    
+    
+    def toggleVictoryPath(self, vertices):
+        
+        if len(self._victory):
+            self._victoryVertices = vertices
+        else:
+            self._victoryVertices = []
+        
+        self.draw()
+              
     
     
     # That cell that's the user hovering above
@@ -71,7 +82,6 @@ class HexagonPattern():
         if self.HexGUI.Game.isPlayerHuman():
             # Determine where the User is pointing at
             Cell = self.mapCoordToCell([event.x,event.y])
-            
             # If Cell is within a ceratin range .. 
             if Cell[0] >= 0 and Cell[0] <= self.m and Cell[1] >= 0 and Cell[1] <= self.n:
                 
@@ -93,7 +103,7 @@ class HexagonPattern():
         i = round((coords[1] - self.margin) / (1.5 * self.scale) - 0.4330125)
         j = round((((coords[0] - self.margin) / self.scale) - 0.866025 * i) / 1.7320508 -0.4330125)
         
-        return [j, i]
+        return [i, j]
         
     # use the sample hexagon and scale it's coordinates
     # and apply a lateral and vertical offset
@@ -192,20 +202,22 @@ class HexagonPattern():
                 fillColor = "#ececec"
                 
                 vertex = self.HexGUI.Game.HexBoard.getVertex(i, j)
-                if vertex.player == 1:
-                    fillColor= self.blue
-                
-                if vertex.player == 2:
-                    fillColor= self.red
-                
-                
-                # if cell has to be highlighted apply different color
-                if self.ActiveCell[0] == j and self.ActiveCell[1] == i:
-                    if self.ActiveCell[0] != -1 and self.HexGUI.Game.HexBoard.isMarked(i, j) == False:
-                        if self.HexGUI.Game.currentPlayer() == 2:
-                            fillColor = self.red
-                        else:
-                            fillColor = self.blue
+                if vertex.player != None:
+                    if vertex.player == 1:
+                        fillColor= self.blue
+                    
+                    if vertex.player == 2:
+                        fillColor= self.red
+                    
+                else:
+                       
+                    # if cell has to be highlighted apply different color
+                    if self.ActiveCell[0] == i and self.ActiveCell[1] == j:
+                        if self.ActiveCell[0] != -1 and self.HexGUI.Game.HexBoard.isMarked(i, j) == False:
+                            if self.HexGUI.Game.currentPlayer() == 2:
+                                fillColor = self.red
+                            else:
+                                fillColor = self.blue
                 
                 
                 

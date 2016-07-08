@@ -17,6 +17,7 @@ class HexGUI:
         
         # init Tkinter
         self.tkInstance = Tk()
+        self.tkInstance.after(1000, self.onUITick)
         
         self._GUISplashScreen = SplashScreenView(self.tkInstance, self)
         self._GUIMenu = MenuView(self.tkInstance, self)
@@ -25,6 +26,16 @@ class HexGUI:
         
         self._GUIMenu.show()
         
+    # called on every GUI Clock tick
+    def onUITick(self):
+        
+        if not self.Game._pause:
+            # notify subscripts
+            EventManager.notify("UITick")
+        
+        
+        # redo this step every nth seconds
+        self.tkInstance.after(200, self.onUITick)
     
     def mainloop(self):
         mainloop()
@@ -71,5 +82,6 @@ class HexGUI:
             self._GUIMenu.hide()
             self._GUIGameBoard.show()
             self._GUISplashScreen.hide()
+            EventManager.notify("GameUILoaded")
     
     
