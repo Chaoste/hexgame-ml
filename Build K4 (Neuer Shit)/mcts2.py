@@ -78,6 +78,7 @@ class MonteCarloTreeSearch(KI):
         print("First level Initialized")
 
     def explore_tree(self):
+        # FIXME: Selects the root node (thats why backpropagate fails)
         node = self.select_node()
         # node becomes None if the game is finished at this point
         while node is not None:
