@@ -21,6 +21,12 @@ class EventManager:
         EventManager.registerEvent("MoveFinished")
         
         EventManager.registerEvent("PlayerChanged")
+        
+        EventManager.registerEvent("GameUILoaded")
+        
+        EventManager.registerEvent("UITick")
+        
+        EventManager.registerEvent("ToggleVictoryPath")
     
     # add subscriber to the specific events
     @staticmethod

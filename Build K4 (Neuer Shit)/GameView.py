@@ -18,8 +18,12 @@ class GameView:
         self.canvas.bind("<Button>", self.onClick)
         
         self.PlayerSwapButton = Button(master,
-                             text="Swap Player",
+                             text="swap Player",
                              command=self.swapPlayer)
+        
+        self.ShowVictoryPathButton = Button(master,
+                             text="toggle victory path",
+                             command=self.toggleVictoryPath)
         
         # Create Hexgame Interface
         self.Pattern = HexagonPattern(self)
@@ -41,10 +45,12 @@ class GameView:
     
     def show(self):
         self.canvas.pack()
+        self.ShowVictoryPathButton.pack()
         
     def hide(self):
         self.canvas.pack_forget()
         self.hidePlayerSwap()
+        self.ShowVictoryPathButton.pack_forget()
     
     def onMouseOver(self, event):
         self.Pattern.onMouseOver(event)
@@ -56,6 +62,13 @@ class GameView:
         if self.Game.isPlayerHuman():
             move = self.Pattern.mapCoordToCell([event.x, event.y])
             self.Game.makeMove(move)
+        
+        if not self.Game.isPlayerHuman():
+            self.Game.pause()
+    
+    def toggleVictoryPath(self):
+        self.Pattern.toggleVictoryPath()
+
     
     def draw(self):
         self.Pattern.draw()

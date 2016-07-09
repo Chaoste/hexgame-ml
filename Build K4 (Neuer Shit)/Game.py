@@ -3,8 +3,7 @@ from HexBoard import HexBoard
 import random
 from EventManager import EventManager
 from MachineGUI import MachineGUI
-from MainKI import MainKI
-from PatternKI import *
+from HexKI import *
 from mcts import MonteCarloTreeSearch
 from copy import deepcopy, copy
 
@@ -14,8 +13,8 @@ class Game:
 
 
     def __init__(self, m, n, mode):
-        # move counter init
-        self.moveCounter = 0
+
+        self._pause = False
 
         # save size and mode
         self.size = [m,n]
@@ -33,28 +32,64 @@ class Game:
 
         EventManager.subscribe("GameFinished", self.onGameFinished)
         EventManager.subscribe("GameStarted", self.onGameStarted)
+        EventManager.subscribe("MoveFinished", self.onMoveFinished)
+        EventManager.subscribe("GameUILoaded", self.onGameUILoaded)
+        EventManager.subscribe("ToggleVictoryPath", self.onToggleVictoryPath)
 
         # instantiate model and view
         self.HexBoard = HexBoard(self.size[0], self.size[1])
         self.HexBoard.setReferenceToGame(self)
+
+        self.GameState = 0
+
+        self.moveCounter = 0
 
         if self.UIRequired():
             self.HexGUI = HexGUI(self.size[0], self.size[1], self)
         else:
             self.MachineGUI = MachineGUI(self.size[0], self.size[1], self)
 
-        if self.mode == "ki" or self.mode == "machine":
-            self.KI = MonteCarloTreeSearch(self, 2)
+        if self.mode == "ki":
+            self.KI = HexKI(self.size[0], self.size[1])
+
+        if self.mode == "inter" or self.mode == "machine":
+
+            self.KI = []
+            self.KI.append(HexKI(self.size[0], self.size[1]))
+            self.KI.append(HexKI(self.size[0], self.size[1]))
+
+            self._currentPlayerType = "ki"
 
         # set the game to entry point
-        self.start(self._currentPlayer)
+        #self.start(self._currentPlayer)
+
+
 
         if self.UIRequired():
+
+            EventManager.subscribe("UITick", self.onUITick)
+
             # main loop starts for event receiving
             self.HexGUI.mainloop()
 
         if self.UIRequired() == False:
+            self.GameState = 1
             self.MachineGUI.gameLoop()
+
+
+
+
+    def onUITick(self):
+        self.doKIMove()
+
+    def onToggleVictoryPath(self):
+
+        if self.UIRequired():
+            vertices = self.HexBoard.getVictoryPath()
+            self.HexGUI._GUIGameBoard.Pattern.toggleVictoryPath(vertices)
+
+    def pause(self):
+        self._pause = not self._pause
 
     def UIRequired(self):
         if self.mode == "human" or self.mode == "ki" or self.mode == "inter":
@@ -63,6 +98,8 @@ class Game:
             return False
 
     def start(self, firstPlayer):
+
+        self.GameState = 0
 
         EventManager.notify("GameStarting")
 
@@ -76,8 +113,17 @@ class Game:
         # current player depending on decision
         self._currentPlayer = firstPlayer
 
-        if self.mode == "ki" or self.mode == "machine":
-            self.KI = MonteCarloTreeSearch(self, 2)
+        if self.mode == "ki":
+            self.KI = MonteCarloTreeSearch(self, 2)  # TODO: ki_player_id == 2?
+            # self.KI = HexKI(self.size[0], self.size[1])
+
+        if self.mode == "inter" or self.mode == "machine":
+
+            self.KI = []
+            self.KI.append(HexKI(self.size[0], self.size[1]))
+            self.KI.append(HexKI(self.size[0], self.size[1]))
+
+            self._currentPlayerType = "ki"
 
         # if random number wanted, generate one
         if firstPlayer == 0:
@@ -87,17 +133,30 @@ class Game:
 
     def onGameStarted(self):
 
+        self.GameState = 1
+
         if self.UIRequired():
             # draw the gui
             self.HexGUI.draw()
 
+
     # Game finished event
     def onGameFinished(self):
+
+        self.GameState = 0
 
         if self.UIRequired():
             # move over to main menu and present the winner
             self.HexGUI.openPage("menu")
             self.HexGUI.won(self.HexBoard.winner())
+
+
+
+    def onGameUILoaded(self):
+        pass
+        #if self.mode == "inter" or (self.mode == "ki" and self._currentPlayerType == "human"):
+        #    print("IM KI")
+
 
     # generate random player number
     def chooseFirst(self):
@@ -127,6 +186,10 @@ class Game:
             else:
                 self._currentPlayerType = "human"
 
+        if self.mode in ["inter", "machine"]:
+
+            self._currentPlayerType = "ki"
+
 
     # control flow for click event
     def makeMove(self, move):
@@ -135,8 +198,9 @@ class Game:
         EventManager.notify("MoveBegan")
 
         # if already marked dont do anything
-        if self.HexBoard.isMarked(move[1], move[0]):
+        if self.HexBoard.isMarked(move[0], move[1]):
             EventManager.notify("MoveDenied")
+            assert False
 
         else:
 
@@ -146,15 +210,37 @@ class Game:
             # notify Model
             self.HexBoard.receiveMove(move)
 
+            if self.mode == "inter":
+                self.KI[0].receiveMove(move)
+                self.KI[1].receiveMove(move)
+            elif self.mode == "ki":
+                self.KI.receiveMove(move)
+
             # notify View
             self.changePlayer()
             EventManager.notify("PlayerChanged")
 
-            if not self.isPlayerHuman() and self.mode != "copy":
-                move = self.KI.getMove()
-                self.makeMove(move)
+
 
         EventManager.notify("MoveFinished")
+
+
+    def doKIMove(self):
+
+        if self.GameState == 1:
+
+            if not self.isPlayerHuman() and self.mode == "ki":
+                move = self.KI.nextMove()
+                self.makeMove(move)
+
+            elif self.mode == "inter" or self.mode == "machine":
+                move = self.KI[self.currentPlayer()-1].nextMove()
+                #print(move, self.currentPlayer())
+                #print("making", move)
+                self.makeMove(move)
+
+    def onMoveFinished(self):
+        pass
 
     def copy(self):
         copy_obj = type(self)(*self.size, mode="copy")

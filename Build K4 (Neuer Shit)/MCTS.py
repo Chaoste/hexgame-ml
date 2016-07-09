@@ -1,5 +1,6 @@
 import math
 import random
+import time
 from KI import KI
 from EventManager import EventManager
 
@@ -38,7 +39,7 @@ class Node:
                 vertex = node.game.HexBoard.getVertex(i,j)
                 if vertex.player == None:
                     future_game = node.game.copy()
-                    future_game.makeMove([j, i])  # TODO: Right order?
+                    future_game.makeMove([i, j])  # TODO: Right order?
                     yield Node(node, future_game)
 
     def backpropagation_value(self):
@@ -71,14 +72,19 @@ class MonteCarloTreeSearch(KI):
         self.player_id = 2  # TODO: Pass the number of the ki player
         self.root = Node(None, game)
         self.moves = []
+        # TODO: Make simulation faster by not copying the whole game object
+        print("Exploring the tree")
+        start = time.time()
         for child in self.root.children:
-            self.simulate(child, N=5)
-        if len(self.moves) == 0:
-            self.explore_tree()
-        print("First level Initialized")
+            self.simulate(child, N=3)
+            child.backpropagate()
+        print("First level Initialized - Took:", time.time() - start)
+        start = time.time()
+        self.explore_tree()
+        print("Explored tree - Took:", time.time() - start)
+
 
     def explore_tree(self):
-        # FIXME: Selects the root node (thats why backpropagate fails)
         node = self.select_node()
         # node becomes None if the game is finished at this point
         while node is not None:
@@ -87,17 +93,24 @@ class MonteCarloTreeSearch(KI):
             print("Explored node: {} simulations, {} avg value".format(node.simulations, node.value / node.simulations))
             node = self.select_node()
 
-    def getMove(self):
+    def receiveMove(self, move):
+        # TODO: Change self.root to the child with this move
+        pass
+
+    def nextMove(self):
+        # TODO: Use moves list after MCTS is done
         # Called by framework to return the next step
-        return None
+        options = list(self.options(self.root.game))
+        move = options[round(random.random() * (len(options) - 1))]
+        return move
 
     def select_node(self):
         # UCT process to decide if a node is expanded or a new node is explored
-        node, uct_value = self.root, self.root.uct()
+        node, uct_value = self.root, 0
         # Explore the tree until an uncalculated node is found
         while uct_value is not INF:
             children = [(child, child.uct()) for child in node.children]
-            if any([x.game.HexBoard.finished() for x in children]):
+            if any([x.game.HexBoard.finished() for (x, y) in children]):
                 return None
             # Expand nodes with a high UCT rank
             children.sort(key=lambda x: x[1], reverse=True)
@@ -110,7 +123,7 @@ class MonteCarloTreeSearch(KI):
             for j in range(game.size[1]):
                 vertex = game.HexBoard.getVertex(i,j)
                 if vertex.player == None:
-                    yield [j, i]
+                    yield [i, j]
 
     def simulate(self, node, N=50):
         success_sum = 0
@@ -120,7 +133,6 @@ class MonteCarloTreeSearch(KI):
             EventManager.Events["GameFinished"].clear()
             EventManager.Events["MoveFinished"].clear()
             simulation = node.game.copy()
-            EventManager.subscribe("GameFinished", simulation.HexBoard.onGameFinished)
             while not simulation.HexBoard.finished():
                 options = list(self.options(simulation))
                 assert len(options) > 0, "No options left but not finished"
