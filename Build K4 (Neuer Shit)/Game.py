@@ -241,13 +241,3 @@ class Game:
 
     def onMoveFinished(self):
         pass
-
-    def copy(self):
-        copy_obj = type(self)(*self.size, mode="copy")
-        copy_obj.HexBoard = copy(self.HexBoard)
-        copy_obj.HexBoard.Vertices = deepcopy(self.HexBoard.Vertices)
-        copy_obj.HexBoard.Game = copy_obj
-        copy_obj._currentPlayer = self._currentPlayer
-        copy_obj._currentPlayerType = self._currentPlayerType
-        copy_obj.moveCounter = self.moveCounter
-        return copy_obj

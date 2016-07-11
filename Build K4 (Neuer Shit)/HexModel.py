@@ -36,6 +36,12 @@ class HexModel:
     def getVertex(self, i, j):
         return self.Vertices[str(i) + "," + str(j)]
 
+    def getPlayer(self):
+        raise NotImplementedError
+
+    def onGameFinished(self):
+        raise NotImplementedError
+
     # get Vertices
     def getVertices(self, mode = "none"):
 
